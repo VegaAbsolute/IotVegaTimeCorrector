@@ -166,7 +166,7 @@ function send_data_resp(obj)
 {
   for(var i = 0; i<obj.append_status.length; i++)
   {
-    if(json.append_status[i].status)
+    if(obj.append_status[i].status)
     {
       if(config.debugMOD) console.log('The time on device '+obj.append_status[i].devEui+' has been successfully adjusted');
     }
