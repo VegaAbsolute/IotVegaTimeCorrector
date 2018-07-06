@@ -1,6 +1,5 @@
 const VegaWS = require('./vega_ws.js');
 const Config = require('./config.js');
-const { exec } = require('child_process');
 const moment = require('moment');
 const Uint64BE = require("int64-buffer").Uint64BE;
 let config = {};
