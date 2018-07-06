@@ -14,9 +14,18 @@ function decToHex(dec)
 {
   let hex = new Uint64BE(dec).toString(16);
   let hex_array=[];
+  if(hex.length % 2 !== 0)
+  {
+      hex='0'+hex;
+  }
   for (let i=0;i<hex.length-1;i=i+2)
   {
-     hex_array.push( hex.substring(i, i+2) );
+    let bit = hex.substring(i, i+2);
+    if(bit.length == 1)
+    {
+      bit = '0'+bit;
+    }
+    hex_array.push( bit );
   }
   while(hex_array.length<8)
   {
@@ -35,8 +44,12 @@ function adjustTime(deviceTime,devEui)
   {
     if(config.debugMOD) console.log('Need to adjust the time to '+deltaTime+' seconds, on the device with devEui '+devEui);
     let deltaTimeHex = decToHex(deltaTime);
-    let message = 'ff'+deltaTimeHex;
-    send_data_req(message,4,false,devEui);
+    let data = 'ff'+deltaTimeHex;
+    send_data_req(data,4,false,devEui);
+  }
+  else
+  {
+    if(config.debugMOD) console.log('On the device with devEui '+devEui+' normal time, no time adjustment required');
   }
 }
 function parsePackageTime(data)
