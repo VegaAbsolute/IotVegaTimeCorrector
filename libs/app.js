@@ -41,14 +41,14 @@ function adjustTime(deviceTime,devEui)
   let deltaTime = currentTime-(deviceTime-delay);
   if(Math.abs(deltaTime)>5)
   {
-    if(config.debugMOD) console.log('Need to adjust the time to '+deltaTime+' seconds, on the device with devEui '+devEui);
+    if(config.debugMOD) console.log(moment().format('LLL')+': '+' Need to adjust the time to '+deltaTime+' seconds, on the device with devEui '+devEui);
     let deltaTimeHex = decToHex(deltaTime);
     let data = 'ff'+deltaTimeHex;
     send_data_req(data,4,false,devEui);
   }
   else
   {
-    if(config.debugMOD) console.log('On the device with devEui '+devEui+' normal time, no time adjustment required');
+    if(config.debugMOD) console.log(moment().format('LLL')+': '+'On the device with devEui '+devEui+' normal time, no time adjustment required');
   }
 }
 function parsePackageTime(data)
@@ -80,7 +80,7 @@ function parsePackageTime(data)
   catch (e)
   {
     result.status = false;
-    console.error('ERROR parse package time',e);
+    console.error(moment().format('LLL')+': '+'ERROR parse package time',e);
   }
   finally
   {
@@ -155,16 +155,16 @@ function auth_resp(obj)
       premission[obj.command_list[i]] = true;
     }
     statusAuth = true;
-    console.log('Success authorization on server iotvega');
+    console.log(moment().format('LLL')+': '+'Success authorization on server iotvega');
     if(!premission['send_data'])
     {
-      console.log('Attention!!! The user does not have sufficient rights to adjust the time. You must have rights to send data (command "send_data_req")');
+      console.log(moment().format('LLL')+': '+'Attention!!! The user does not have sufficient rights to adjust the time. You must have rights to send data (command "send_data_req")');
     }
   }
   else
   {
     statusAuth = false;
-    console.log('Not successful authorization on server iotvega');
+    console.log(moment().format('LLL')+': '+'Not successful authorization on server iotvega');
     setTimeout(()=>{
       ws.reload();
     },10000);
@@ -180,11 +180,11 @@ function send_data_resp(obj)
   {
     if(obj.append_status[i].status)
     {
-      if(config.debugMOD) console.log('The time on device '+obj.append_status[i].devEui+' has been successfully adjusted');
+      if(config.debugMOD) console.log(moment().format('LLL')+': '+'The time on device '+obj.append_status[i].devEui+' has been successfully adjusted');
     }
     else
     {
-      if(config.debugMOD) console.log('The time on device '+obj.append_status[i].devEui+' has not been adjusted');
+      if(config.debugMOD) console.log(moment().format('LLL')+': '+'The time on device '+obj.append_status[i].devEui+' has not been adjusted');
     }
   }
 }
@@ -211,7 +211,7 @@ function run(conf)
     }
     catch (e)
     {
-      console.log('Initializing the application was a mistake');
+      console.log(moment().format('LLL')+': '+'Initializing the application was a mistake');
       console.error(e);
     }
   }

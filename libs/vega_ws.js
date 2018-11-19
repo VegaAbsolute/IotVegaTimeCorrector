@@ -1,5 +1,6 @@
 const WebSocket = require('ws');
 const EventEmitter = require('events');
+const moment = require('moment');
 class VegaWS extends EventEmitter
 {
   constructor(url)
@@ -65,7 +66,7 @@ class VegaWS extends EventEmitter
     }
     catch (e)
     {
-      console.log(e);
+      console.log(moment().format('LLL')+': ',e);
     }
     finally
     {
@@ -74,19 +75,19 @@ class VegaWS extends EventEmitter
   }
   _error()
   {
-    console.log('WS error');
+    console.log(moment().format('LLL')+': ','WS error');
     this._status = false;
     this._self.emit('no_connect');
   }
   _close(code)
   {
-    console.log('WS close');
+    console.log(moment().format('LLL')+': ','WS close');
     this._status = false;
     this._self.emit('no_connect');
   }
   _open()
   {
-    console.log('Successful connection on WS');
+    console.log(moment().format('LLL')+': ','Successful connection on WS');
     this._status = true;
     this._self.emit('run')
   }
