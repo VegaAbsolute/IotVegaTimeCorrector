@@ -1,3 +1,4 @@
+//index.js version 1.0.0
 let app = require( './libs/app.js' );
 let Config = require( './libs/config.js' );
 let fs = require( 'fs' );

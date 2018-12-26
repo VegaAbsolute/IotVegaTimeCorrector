@@ -1,5 +1,5 @@
 # IotVegaTimeCorrector
-Application for automatic time correction on iotvegaServer devices
+Application for automatic time correction on iotVegaServer devices
 ## Quick start
 
 - Install node.js, [download](https://nodejs.org/en/download/)
@@ -15,6 +15,11 @@ Application for automatic time correction on iotvegaServer devices
 - Run the application by using the command `npm start`
 
 ## Tips
-1. To run the application in the background, try using "forever"
+1. To run the application in the background, try using "forever" or "pm2"
+###using forever
 - Installation forever `npm install forever -g`
 - Running the application `forever start index.js`
+###using pm2
+- Installation forever `npm install pm2 -g`
+- Running the application `pm2 start index.js`
+- Save `pm2 save`
