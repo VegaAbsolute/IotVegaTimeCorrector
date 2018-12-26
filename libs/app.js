@@ -3,9 +3,9 @@ const DELAY = 1;
 const COUNT_BYTE_IN_PACKATE_TIME = 4;
 const PORT_PACKATE_TIME = 4;
 
-let VegaWS = require('./vega_ws.js');
-let moment = require('moment');
-let Uint64BE = require("int64-buffer").Uint64BE;
+let VegaWS = require( './vega_ws.js' );
+let moment = require( 'moment' );
+let Uint64BE = require( 'int64-buffer' ).Uint64BE;
 
 let config = new Object();
 let statusAuth = false;
