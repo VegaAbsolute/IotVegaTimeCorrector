@@ -144,7 +144,7 @@ function send_data_req( data, port, ack, devEui )
 //Обработчик пакта rx
 function rx ( obj )
 {
-  if ( !( obj.type && ( obj.type.indexOf('UNCONF_UP') > -1 || obj.type.indexOf('CONF_UP') > -1 ) ) ) return;
+  if ( !( obj.type && ( obj.type === 'UNCONF_UP' || obj.type === 'CONF_UP' ) ) ) return;
   try
   {
     let timeServerMs = obj.ts;
