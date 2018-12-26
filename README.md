@@ -16,10 +16,12 @@ Application for automatic time correction on iotVegaServer devices
 
 ## Tips
 1. To run the application in the background, try using "forever" or "pm2"
-###using forever
+
+### using forever
 - Installation forever `npm install forever -g`
 - Running the application `forever start index.js`
-###using pm2
+
+### using pm2
 - Installation forever `npm install pm2 -g`
 - Running the application `pm2 start index.js`
 - Save `pm2 save`
