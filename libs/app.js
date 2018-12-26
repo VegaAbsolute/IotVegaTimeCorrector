@@ -1,75 +1,96 @@
-const VegaWS = require('./vega_ws.js');
-const Config = require('./config.js');
-const moment = require('moment');
-const Uint64BE = require("int64-buffer").Uint64BE;
-let config = {};
+//app.js version 1.0.0
+const DELAY = 1;
+const COUNT_BYTE_IN_PACKATE_TIME = 4;
+const PORT_PACKATE_TIME = 4;
+
+let VegaWS = require('./vega_ws.js');
+let moment = require('moment');
+let Uint64BE = require("int64-buffer").Uint64BE;
+
+let config = new Object();
 let statusAuth = false;
-let premission = {};
-let ws = {};
+let premission = new Object();
+let ws = new Object();
 //------------------------------------------------------------------------------
 //Application logic
 //------------------------------------------------------------------------------
-function decToHex(dec)
+//Функция конвертирующая десятичное целое число в HEX
+function decToHex ( dec )
 {
-  let hex = new Uint64BE(dec).toString(16);
-  let hex_array=[];
-  if(hex.length % 2 !== 0)
+  try
   {
-      hex='0'+hex;
-  }
-  for (let i=0;i<hex.length-1;i=i+2)
-  {
-    let bit = hex.substring(i, i+2);
-    if(bit.length == 1)
+    let hex = new Uint64BE( dec ).toString( 16 );
+    let bytes = [];
+    if( hex.length % 2 !== 0 )
     {
-      bit = '0'+bit;
+        hex = '0' + hex;
     }
-    hex_array.push( bit );
+    for ( let i = 0; i < hex.length - 1; i = i + 2 )
+    {
+      let byte = hex.substring( i, i + 2 );
+      if( byte.length == 1 )
+      {
+        byte = '0' + byte;
+      }
+      bytes.push( byte );
+    }
+    let lengthHex = COUNT_BYTE_IN_PACKATE_TIME * 2;
+    while ( bytes.length < lengthHex )
+    {
+      bytes.unshift( '00' );
+    }
+    bytes.reverse();
+    hex = bytes.join( '' );
+    return hex;
   }
-  while(hex_array.length<8)
+  catch (e)
   {
-    hex_array.unshift('00');
+    if ( config.debugMOD ) console.error( moment().format('LLL'), e );
+    return '';
   }
-  hex_array.reverse();
-  hex = hex_array.join('');
-  return hex;
 }
-function adjustTime(deviceTime,devEui)
+//Корректирует время если это нужно
+function adjustTime ( deviceTime, devEui )
 {
+  let logText = '';
   let currentTime = moment().utc().unix();
-  let delay = 1;
-  let deltaTime = currentTime-(deviceTime-delay);
-  if(Math.abs(deltaTime)>5)
+  let deltaTime = currentTime - ( deviceTime - DELAY );
+  if ( Math.abs(deltaTime) > 5 )
   {
-    if(config.debugMOD) console.log(moment().format('LLL')+': '+' Need to adjust the time to '+deltaTime+' seconds, on the device with devEui '+devEui);
+    logText = ': Need to adjust the time to '+deltaTime+' seconds, on the device with devEui '+devEui;
+    if ( config.debugMOD ) console.log( moment().format('LLL'), logText);
     let deltaTimeHex = decToHex(deltaTime);
     let data = 'ff'+deltaTimeHex;
     send_data_req(data,4,false,devEui);
   }
   else
   {
-    if(config.debugMOD) console.log(moment().format('LLL')+': '+'On the device with devEui '+devEui+' normal time, no time adjustment required');
+    logText = ': On the device with devEui '+devEui+' normal time, no time adjustment required';
+    if ( config.debugMOD ) console.log ( moment().format('LLL'), logText);
   }
 }
-function parsePackageTime(data)
+//Разбирает пакет с временем
+function parsePackateTime ( data )
 {
   data = data.toLowerCase()
-  let result = {status:false};
+  let result = {
+    status: false
+  };
   try
   {
-    let hex_array=[];
-    for (var i =0;i<data.length-1;i=i+2)
+    let bytes = [];
+    for ( let i =0; i < data.length - 1; i = i + 2 )
     {
-       hex_array.push( data.substring(i, i+2) );
+       bytes.push( data.substring( i, i + 2 ) );
     }
-    if(hex_array[0]=='ff')
+    if ( bytes[0] == 'ff' )
     {
-      let validTime = hex_array[4]!==undefined&&hex_array[3]!==undefined&&hex_array[2]!==undefined&&hex_array[1]!==undefined;
-      if(validTime)
+      let validTime = bytes[4] !== undefined && bytes[3] !==undefined && bytes[2] !== undefined && bytes[1] !== undefined;
+      if( validTime )
       {
-        let hexTime = hex_array[4]+hex_array[3]+hex_array[2]+hex_array[1];
-        let timeDevice = parseInt(hexTime,16);
-        if(!isNaN(timeDevice))
+        let hexTime = bytes[4] + bytes[3] + bytes[2] + bytes[1];
+        let timeDevice = parseInt( hexTime, 16 );
+        if( !isNaN( timeDevice ) )
         {
           result.time = timeDevice;
           result.status = true;
@@ -80,7 +101,7 @@ function parsePackageTime(data)
   catch (e)
   {
     result.status = false;
-    console.error(moment().format('LLL')+': '+'ERROR parse package time',e);
+    console.error( moment().format('LLL')+': ERROR parse packate time', e );
   }
   finally
   {
@@ -90,129 +111,139 @@ function parsePackageTime(data)
 //------------------------------------------------------------------------------
 //ws send message
 //------------------------------------------------------------------------------
-function auth_req()
+//Отправка команды на авторизацию
+function auth_req ()
 {
   let message = {
-    cmd:'auth_req',
-    login:config.loginWS,
-    password:config.passwordWS
+    cmd: 'auth_req',
+    login: config.loginWS,
+    password: config.passwordWS
   };
-  ws.send_json(message);
+  ws.send_json( message );
   return;
 }
-function send_data_req(data,port,ack,devEui)
+function send_data_req( data, port, ack, devEui )
 {
-  let message={
-      cmd:'send_data_req',
-      data_list:[
+  let message = {
+      cmd: 'send_data_req',
+      data_list: [
         {
-          devEui:devEui,
-          data:data,
-          port:parseInt(port),
-          ack:ack
+          devEui: devEui,
+          data: data,
+          port: parseInt( port ),
+          ack: ack
         }
       ]
   };
-  ws.send_json(message);
+  ws.send_json( message );
   return;
 }
 //------------------------------------------------------------------------------
 //commands iotvega.com
 //------------------------------------------------------------------------------
-function rx(obj)
+//Обработчик пакта rx
+function rx ( obj )
 {
-  if(!(obj.type&&(obj.type.indexOf('UNCONF_UP')>-1||obj.type.indexOf('CONF_UP')>-1))) return;
+  if ( !( obj.type && ( obj.type.indexOf('UNCONF_UP') > -1 || obj.type.indexOf('CONF_UP') > -1 ) ) ) return;
   try
   {
     let timeServerMs = obj.ts;
     let data = obj.data;
     let devEui = obj.devEui;
     let port = obj.port;
-    if(data&&port==4)
+    if ( data && port == PORT_PACKATE_TIME )
     {
-      let packageTime = parsePackageTime(data);
-      if(packageTime.status)
+      let packateTime = parsePackateTime( data );
+      if( packateTime.status )
       {
-        adjustTime(packageTime.time,devEui);
+        adjustTime( packateTime.time, devEui );
       }
     }
   }
   catch (e)
   {
-    console.error(e);
+    console.error( moment().format('LLL'), e );
   }
   finally
   {
     return;
   }
 }
-function auth_resp(obj)
+//Обработчик пакета с результатом авторизации
+function auth_resp ( obj )
 {
-  if(obj.status)
+  let logText = '';
+  if ( obj.status )
   {
-    for(let i = 0 ; i<obj.command_list.length;i++)
+    for ( let i = 0; i < obj.command_list.length; i++ )
     {
-      premission[obj.command_list[i]] = true;
+      premission[ obj.command_list[i] ] = true;
     }
     statusAuth = true;
-    console.log(moment().format('LLL')+': '+'Success authorization on server iotvega');
-    if(!premission['send_data'])
+    logText = ': Success authorization on server iotvega';
+    if( !premission['send_data'] )
     {
-      console.log(moment().format('LLL')+': '+'Attention!!! The user does not have sufficient rights to adjust the time. You must have rights to send data (command "send_data_req")');
+      logText = ': Attention!!! The user does not have sufficient rights to adjust the time. You must have rights to send data (command "send_data_req")';
     }
+
   }
   else
   {
     statusAuth = false;
-    console.log(moment().format('LLL')+': '+'Not successful authorization on server iotvega');
+    logText = ': Not successful authorization on server iotvega';
     setTimeout(()=>{
       ws.reload();
     },10000);
   }
+  console.log( moment().format('LLL'), logText );
 }
-function alter_user_resp(obj)
+//Обработчик события, изменения данных пользователя
+function alter_user_resp ( obj )
 {
   ws.reload();
 }
+//Обработчик пакета результата отправки данных на устройство
 function send_data_resp(obj)
 {
-  for(var i = 0; i<obj.append_status.length; i++)
+  for ( let i = 0; i < obj.append_status.length; i++ )
   {
-    if(obj.append_status[i].status)
+    if ( obj.append_status[i].status )
     {
-      if(config.debugMOD) console.log(moment().format('LLL')+': '+'The time on device '+obj.append_status[i].devEui+' has been successfully adjusted');
+      if ( config.debugMOD ) console.log( moment().format('LLL'), ': The time on device '+obj.append_status[i].devEui+' has been successfully adjusted');
     }
     else
     {
-      if(config.debugMOD) console.log(moment().format('LLL')+': '+'The time on device '+obj.append_status[i].devEui+' has not been adjusted');
+      if ( config.debugMOD ) console.log( moment().format('LLL'), ': The time on device '+obj.append_status[i].devEui+' has not been adjusted');
     }
   }
 }
 //------------------------------------------------------------------------------
 //initalization app
 //------------------------------------------------------------------------------
-function initWS()
+//Инициализация WebSocket
+function initWS ()
 {
-  ws = new VegaWS(config.ws);
-  ws.on('run',auth_req);
-  ws.on('auth_resp',auth_resp);
-  ws.on('rx',rx);
-  ws.on('alter_user_resp',alter_user_resp);
-  ws.on('send_data_resp',send_data_resp);
+  ws = new VegaWS ( config.ws );
+  ws.on( 'run', auth_req );
+  ws.on( 'auth_resp', auth_resp );
+  ws.on( 'rx', rx );
+  ws.on( 'alter_user_resp', alter_user_resp );
+  ws.on( 'send_data_resp', send_data_resp );
 }
-function run(conf)
+//Запуск работы приложения
+function run ( conf )
 {
   config = conf;
-  if(config.valid())
+  if ( config.valid() )
   {
     try
     {
       initWS();
     }
-    catch (e)
+    catch ( e )
     {
-      console.log(moment().format('LLL')+': '+'Initializing the application was a mistake');
-      console.error(e);
+      console.log( moment().format('LLL'), ': Initializing the application was a mistake' );
+      console.error( e );
     }
   }
   return;
