@@ -23,3 +23,7 @@ Application for automatic time correction on iotVegaServer devices
 - Installation forever `npm install pm2 -g`
 - Running the application `pm2 start index.js`
 - Save `pm2 save`
+
+##Recommendations
+
+- Use the unix operating system.
