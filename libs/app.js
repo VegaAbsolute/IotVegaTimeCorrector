@@ -217,6 +217,11 @@ function send_data_resp(obj)
     }
   }
 }
+//Обработчик события ping
+function ping()
+{
+  if ( config.debugMOD ) console.log( moment().format('LLL'), ': Ping');
+}
 //------------------------------------------------------------------------------
 //initalization app
 //------------------------------------------------------------------------------
@@ -229,6 +234,7 @@ function initWS ()
   ws.on( 'rx', rx );
   ws.on( 'alter_user_resp', alter_user_resp );
   ws.on( 'send_data_resp', send_data_resp );
+  ws.on( 'ping', ping );
 }
 //Запуск работы приложения
 function run ( conf )
