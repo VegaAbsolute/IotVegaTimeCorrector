@@ -1,6 +1,7 @@
-//vega_ws.ini version 1.0.0
+//vega_ws.ini version 1.0.1
 const DELAY_MESSAGE = 10000;
 const DELAY_RECONNECT = 5000;
+const MAX_DELAY_PING = 120000;
 
 let WebSocket = require( 'ws' );
 let EventEmitter = require( 'events' );
@@ -13,13 +14,17 @@ class VegaWS extends EventEmitter
     super();
     this.url = url;
     this._connect = {
-      _status: false
+      _status: false,
+      _lastTimePing: undefined
     };
     this.reload();
     const intervel = setInterval( ()=>{
-      if( !this.status )
+      let currentDate = new Date().getTime();
+      let validlastTimePing = typeof this.lastTimePing == 'number';
+      let lastTimePing = validlastTimePing ? this.lastTimePing : currentDate;
+      let delayTimeMessage = currentDate - lastTimePing;
+      if( !this.status || delayTimeMessage > MAX_DELAY_PING )
       {
-        let currentDate = new Date().getTime();
         let validLastTimeReconnect = this.last_time_reconnect !== false;
         let lastDate = validLastTimeReconnect ? this.last_time_reconnect : currentDate;
         let time = currentDate - lastDate;
@@ -43,20 +48,36 @@ class VegaWS extends EventEmitter
   {
     return this._connect._status;
   }
+  get lastTimePing ()
+  {
+    return this._connect._lastTimePing;
+  }
+  set lastTimePing ( time )
+  {
+    this._connect._lastTimePing = time;
+  }
   set status ( st )
   {
     this._connect._status = st;
   }
   reload ()
   {
-    this._connect = new WebSocket( this.url );
-    this.status = false;
-    this._connect._self = this;
-    this.last_time_reconnect = new Date().getTime();
-    this._connect.on('open', this._open);
-    this._connect.on('message', this._message);
-    this._connect.on('error', this._error);
-    this._connect.on('close', this._close);
+    try
+    {
+      this._connect = new WebSocket( this.url );
+      this.status = false;
+      this._connect._self = this;
+      this.last_time_reconnect = new Date().getTime();
+      this._connect.on('open', this._open);
+      this._connect.on('message', this._message);
+      this._connect.on('error', this._error);
+      this._connect.on('close', this._close);
+      this._connect.on('ping', this._ping);
+    }
+    catch (e)
+    {
+      console.log( moment().format('LLL'), e );
+    }
   }
   _message ( message )
   {
@@ -94,14 +115,28 @@ class VegaWS extends EventEmitter
   {
     console.log( moment().format('LLL') + ': ', 'Successful connection on WS' );
     this._status = true;
-    this._self.emit( 'run' )
+    this._self.emit( 'run' );
+  }
+  _ping ()
+  {
+    this._lastTimePing = new Date().getTime();
+    this._self.emit( 'ping' );
   }
   send_json ( obj )
   {
+    let connect = this._connect;
     this._connect.send( JSON.stringify( obj ), function( e ) {
       if ( e )
       {
-        this._status = false;
+        console.log( moment().format('LLL'), e );
+        try
+        {
+          connect._status = false;
+        }
+        catch (e)
+        {
+          console.log( moment().format('LLL'), e );
+        }
       }
     });
   }
