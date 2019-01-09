@@ -2,6 +2,7 @@
 const DELAY = 1;
 const COUNT_BYTE_IN_PACKATE_TIME = 4;
 const PORT_PACKATE_TIME = 4;
+const RX_DELAY = 60000;
 
 let VegaWS = require( './vega_ws.js' );
 let moment = require( 'moment' );
@@ -11,6 +12,7 @@ let config = new Object();
 let statusAuth = false;
 let premission = new Object();
 let ws = new Object();
+let history = new Object();
 //------------------------------------------------------------------------------
 //Application logic
 //------------------------------------------------------------------------------
@@ -57,6 +59,7 @@ function adjustTime ( deviceTime, devEui )
   let deltaTime = currentTime - ( deviceTime - DELAY );
   if ( Math.abs(deltaTime) > 5 )
   {
+    history[devEui] = currentTime;
     logText = ': Need to adjust the time to '+deltaTime+' seconds, on the device with devEui '+devEui;
     if ( config.debugMOD ) console.log( moment().format('LLL'), logText);
     let deltaTimeHex = decToHex(deltaTime);
@@ -154,7 +157,10 @@ function rx ( obj )
     if ( data && port == PORT_PACKATE_TIME )
     {
       let packateTime = parsePackateTime( data );
-      if( packateTime.status )
+      let currentTime = moment().utc().unix();
+      if(history[devEui] === undefined) history[devEui] = 0;
+      let deltaTime = currentTime - history[devEui];
+      if( packateTime.status && Math.abs(deltaTime) > RX_DELAY )
       {
         adjustTime( packateTime.time, devEui );
       }
