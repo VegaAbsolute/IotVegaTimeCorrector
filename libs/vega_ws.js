@@ -21,8 +21,8 @@ class VegaWS extends EventEmitter
     const intervel = setInterval( ()=>{
       let currentDate = new Date().getTime();
       let validlastTimePing = typeof this.lastTimePing == 'number';
-      let lastTimePing = validlastTimePing ? this.lastTimePing : currentDate;
-      let delayTimeMessage = currentDate - lastTimePing;
+      if(!validlastTimePing) this.lastTimePing = currentDate;
+      let delayTimeMessage = currentDate - this.lastTimePing;;
       if( !this.status || delayTimeMessage > MAX_DELAY_PING )
       {
         let validLastTimeReconnect = this.last_time_reconnect !== false;
@@ -30,6 +30,7 @@ class VegaWS extends EventEmitter
         let time = currentDate - lastDate;
         if( time > DELAY_MESSAGE )
         {
+          if(typeof this._connect.terminate === 'function') this._connect.terminate();
           this.reload();
         }
       }
