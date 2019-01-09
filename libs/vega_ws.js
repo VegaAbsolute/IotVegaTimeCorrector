@@ -30,7 +30,6 @@ class VegaWS extends EventEmitter
         let time = currentDate - lastDate;
         if( time > DELAY_MESSAGE )
         {
-          if(typeof this._connect.terminate === 'function') this._connect.terminate();
           this.reload();
         }
       }
@@ -65,6 +64,7 @@ class VegaWS extends EventEmitter
   {
     try
     {
+      if(typeof this._connect.terminate === 'function') this._connect.terminate();
       this._connect = new WebSocket( this.url );
       this.status = false;
       this._connect._self = this;
