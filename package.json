@@ -1,6 +1,6 @@
 {
   "name": "IotVegaTimeCorrector",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Iot Vega TimeCorrector application for automatic time correction on iotvegaServer devices",
   "author": "Vega-Absolute",
   "main": "index.js",

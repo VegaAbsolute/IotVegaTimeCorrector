@@ -1,4 +1,4 @@
-//app.js version 1.0.0
+//app.js version 1.0.1
 const DELAY = 1;
 const COUNT_BYTE_IN_PACKATE_TIME = 4;
 const PORT_PACKATE_TIME = 4;
