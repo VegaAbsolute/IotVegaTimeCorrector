@@ -3,6 +3,7 @@ const DELAY = 1;
 const COUNT_BYTE_IN_PACKATE_TIME = 4;
 const PORT_PACKATE_TIME = 4;
 const RX_DELAY_SECOND = 60;
+const ALLOWABLE_DIFFERENCE_SECONDS = 5;
 
 let VegaWS = require( './vega_ws.js' );
 let moment = require( 'moment' );
@@ -57,7 +58,7 @@ function adjustTime ( deviceTime, devEui )
   let logText = '';
   let currentTime = moment().utc().unix();
   let deltaTime = currentTime - ( deviceTime - DELAY );
-  if ( Math.abs(deltaTime) > 5 )
+  if ( Math.abs(deltaTime) > ALLOWABLE_DIFFERENCE_SECONDS )
   {
     history[devEui] = currentTime;
     logText = ': Need to adjust the time to '+deltaTime+' seconds, on the device with devEui '+devEui;
