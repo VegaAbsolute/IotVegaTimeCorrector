@@ -160,9 +160,13 @@ function rx ( obj )
       let currentTime = moment().utc().unix();
       if(history[devEui] === undefined) history[devEui] = 0;
       let deltaTime = currentTime - history[devEui];
-      if( packateTime.status && Math.abs(deltaTime) > RX_DELAY )
+      if( packateTime.status && Math.abs( deltaTime ) > RX_DELAY )
       {
         adjustTime( packateTime.time, devEui );
+      }
+      else
+      {
+        console.log( moment().format('LLL'),  ': device with devEui '+devEui+' denied time adjust. Reason: TimeCorrector send a time correct packate '+moment.unix(history[devEui]).format('LLL'));
       }
     }
   }
