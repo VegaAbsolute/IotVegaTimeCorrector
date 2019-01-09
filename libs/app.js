@@ -2,7 +2,7 @@
 const DELAY = 1;
 const COUNT_BYTE_IN_PACKATE_TIME = 4;
 const PORT_PACKATE_TIME = 4;
-const RX_DELAY = 60000;
+const RX_DELAY_SECOND = 60;
 
 let VegaWS = require( './vega_ws.js' );
 let moment = require( 'moment' );
@@ -160,8 +160,7 @@ function rx ( obj )
       let currentTime = moment().utc().unix();
       if(history[devEui] === undefined) history[devEui] = 0;
       let deltaTime = currentTime - history[devEui];
-      console.log(Math.abs( deltaTime ),'-------',RX_DELAY);
-      if( packateTime.status && Math.abs( deltaTime ) > RX_DELAY )
+      if( packateTime.status && Math.abs( deltaTime ) > RX_DELAY_SECOND )
       {
         adjustTime( packateTime.time, devEui );
       }
