@@ -160,6 +160,7 @@ function rx ( obj )
       let currentTime = moment().utc().unix();
       if(history[devEui] === undefined) history[devEui] = 0;
       let deltaTime = currentTime - history[devEui];
+      console.log(Math.abs( deltaTime ),'-------',RX_DELAY);
       if( packateTime.status && Math.abs( deltaTime ) > RX_DELAY )
       {
         adjustTime( packateTime.time, devEui );
