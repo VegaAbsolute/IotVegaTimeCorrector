@@ -466,7 +466,8 @@ function handleSpbzip(devEui, data) {
         }
 
         sendSpbzipCorrectionBatch(batch);
-        startDeviceProcessing();
+        // Ждём 30 сек, дожидаясь получения устройством сообщений
+        setTimeout(() => startDeviceProcessing(), 30_000);
     }
 }
 
